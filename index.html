@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniCredit Bank | Премиум зона</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #c00d0d; 
+            --dark-blue: #002a52;
+            --gold: #b39356;
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        body, html { margin: 0; padding: 0; width: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; color: #1e293b; }
+
+        /* --- ЗАРЕЖДАНЕ --- */
+        #splash-screen, #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark-blue); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 9999; color: white;
+            text-align: center;
+        }
+        #loading-overlay { display: none; background: rgba(0, 42, 82, 0.95); backdrop-filter: blur(8px); }
+
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1); border-left-color: var(--primary);
+            border-radius: 50%; width: 50px; height: 50px; animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- ХЕДЪР --- */
+        header {
+            width: 100%; background: #ffffff; padding: 20px 0; text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03); position: sticky; top: 0; z-index: 100;
+        }
+        .bank-logo { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: -1.5px; }
+        .bank-logo span { color: var(--dark-blue); font-weight: 400; }
+        
+        .welcome-banner {
+            padding: 12px; font-size: 14px; font-weight: 600; color: var(--dark-blue);
+            background: #fff; border-top: 1px solid #f1f5f9; letter-spacing: 0.5px;
+        }
+        .welcome-banner span { color: var(--primary); text-transform: uppercase; }
+
+        /* --- ОФОРМЛЕНИЕ --- */
+        #main-content {
+            opacity: 0; display: flex; flex-direction: column; align-items: center; padding: 20px;
+            min-height: 100vh; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+            url('https://images.unsplash.com/photo-1554469384-e58fac16e23a?auto=format&fit=crop&w=1500&q=80');
+            background-size: cover; background-attachment: fixed; transition: opacity 1.5s ease;
+        }
+
+        .transfer-card {
+            background: rgba(255, 255, 255, 0.96); width: 100%; max-width: 520px; border-radius: 24px;
+            padding: 40px; margin-top: 20px; box-shadow: var(--card-shadow);
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .balance-chip {
+            background: var(--dark-blue); color: white; padding: 20px; border-radius: 16px;
+            margin-bottom: 30px; text-align: center; position: relative; overflow: hidden;
+        }
+        .balance-chip::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent); transform: rotate(45deg); }
+        .balance-label { font-size: 11px; text-transform: uppercase; opacity: 0.8; letter-spacing: 2px; }
+        .balance-amount { font-size: 38px; font-weight: 800; margin-top: 5px; }
+
+        /* --- ФОРМА --- */
+        .form-group { margin-bottom: 20px; position: relative; }
+        label { display: block; font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        input, select { 
+            width: 100%; padding: 15px; border: 1.5px solid #e2e8f0; border-radius: 12px; 
+            font-size: 15px; box-sizing: border-box; transition: all 0.3s ease;
+            background: #f8fafc; font-family: inherit; font-weight: 500;
+        }
+        input:focus { border-color: var(--primary); outline: none; background: #fff; box-shadow: 0 0 0 4px rgba(192, 13, 13, 0.1); }
+
+        .btn-confirm { 
+            width: 100%; background: var(--primary); color: white; border: none; padding: 20px; 
+            border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; 
+            text-transform: uppercase; letter-spacing: 1px; transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 10px 20px rgba(192, 13, 13, 0.2);
+        }
+        .btn-confirm:hover { background: #a50b0b; transform: translateY(-2px); }
+
+        /* --- СТРАНИЦИ --- */
+        #summary-page, #final-message { display: none; animation: slideUp 0.5s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .summary-row { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #f1f5f9; }
+        .summary-row span { color: #64748b; font-weight: 500; }
+        .summary-row strong { color: var(--dark-blue); }
+
+        .highlight-box {
+            background: #fff; border: 2px solid #f1f5f9; padding: 25px;
+            border-radius: 18px; margin: 20px 0; position: relative;
+        }
+        .iban-details {
+            background: #f8fafc; border-left: 4px solid var(--primary); padding: 15px;
+            margin-top: 15px; font-family: 'Courier New', monospace; font-size: 15px;
+            color: var(--dark-blue); font-weight: 600; line-height: 1.8;
+        }
+
+        .footer-note { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 20px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div class="bank-logo" style="color:white; margin-bottom:20px;">UniCredit <span>Bank</span></div>
+        <div class="loader"></div>
+        <p style="letter-spacing: 3px; font-weight: 300;">ЗАЩИТЕНА ПРЕМИУМ СЕСИЯ</p>
+    </div>
+
+    <div id="loading-overlay">
+        <div class="loader"></div>
+        <p id="loading-text">КРИПТОГРАФСКА ВАЛИДАЦИЯ...</p>
+    </div>
+
+    <div id="main-content">
+        <header>
+            <div class="bank-logo">UniCredit <span>Bank</span></div>
+            <div class="welcome-banner">ДОБРЕ ДОШЛИ, <span>Veselina Dimitrova</span></div>
+        </header>
+
+        <div class="transfer-card">
+            
+            <div id="form-container">
+                <div class="balance-chip">
+                    <div class="balance-label">Налична сума</div>
+                    <div class="balance-amount">150.000,00 €</div>
+                </div>
+
+                <form id="virement-form">
+                    <div class="form-group"><label>Име на получателя</label><input type="text" id="dest_nom" placeholder="Въведете пълното име" required></div>
+                    <div class="form-group"><label>IBAN номер</label><input type="text" id="dest_iban" placeholder="Международен IBAN код" required></div>
+                    <div class="form-group"><label>BIC / SWIFT код</label><input type="text" id="dest_bic" placeholder="BIC идентификатор" required></div>
+                    <div class="form-group"><label>Държава на получателя</label><input type="text" id="dest_pays" placeholder="Напр: България" required></div>
+                    <div class="form-group"><label>Сума за превод (€)</label><input type="number" id="virement_montant" placeholder="150000" required></div>
+                    <div class="form-group"><label>Основание за превода</label><input type="text" id="virement_motif" placeholder="Напр: Семейство / Инвестиция" required></div>
+                    <div class="form-group">
+                        <label>Скорост на обработка</label>
+                        <select><option>⚡ Незабавен SEPA превод (Препоръчително)</option><option>Стандартен (2-3 дни)</option></select>
+                    </div>
+                    <button type="submit" class="btn-confirm">Провери данните</button>
+                </form>
+            </div>
+
+            <div id="summary-page">
+                <h2 style="text-align: center; color: var(--dark-blue); font-size: 22px;">Преглед на превода</h2>
+                <div class="summary-row"><span>Получател</span><strong id="sum-nom"></strong></div>
+                <div class="summary-row"><span>IBAN сметка</span><strong id="sum-iban"></strong></div>
+                <div class="summary-row"><span>Нетна сума</span><strong id="sum-montant" style="color:var(--primary)"></strong></div>
+                <div class="summary-row"><span>Приоритетни такси</span><strong>300,00 €</strong></div>
+                <button class="btn-confirm" id="btn-final-valider" style="margin-top: 30px;">Потвърди изпращането</button>
+            </div>
+
+            <div id="final-message">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <h2 style="color: var(--dark-blue); text-align: center; margin: 0;">Изисква се одобрение</h2>
+                <p style="text-align: center; font-size: 15px; color: #64748b; margin-top: 15px;">Г-жо Димитрова, за да финализирате незабавното изпращане на <strong>150.000,00 €</strong>, моля, заплатете таксата за управление от <strong>300,00 €</strong>:</p>
+                
+                <div class="highlight-box">
+                    <div class="iban-details">
+                        <span style="color: #94a3b8; font-size: 11px;">ПОЛУЧАТЕЛ НА ТАКСАТА:</span><br>
+                        <strong>MILENA KOSTOVA TSVYATKOVA</strong><br>
+                        <span style="color: #94a3b8; font-size: 11px;">IBAN:</span><br>
+                        <strong>BG90UBBS81551014321693</strong><br>
+                        <span style="color: #94a3b8; font-size: 11px;">BIC:</span><br>
+                        <strong>UBBSBGSF</strong>
+                    </div>
+                </div>
+                <div class="footer-note">
+                    След получаване на доказателство за плащане на таксата, средствата ще бъдат освободени незабавно към сметката на получателя.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() { setTimeout(() => { document.getElementById('splash-screen').style.display = 'none'; document.getElementById('main-content').style.opacity = '1'; }, 3500); };
+        
+        document.getElementById('virement-form').onsubmit = function(e) {
+            e.preventDefault();
+            document.getElementById('loading-overlay').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('sum-nom').innerText = document.getElementById('dest_nom').value;
+                document.getElementById('sum-iban').innerText = document.getElementById('dest_iban').value;
+                document.getElementById('sum-montant').innerText = document.getElementById('virement_montant').value + ",00 €";
+                document.getElementById('loading-overlay').style.display = 'none';
+                document.getElementById('form-container').style.display = 'none';
+                document.getElementById('summary-page').style.display = 'flex';
+                window.scrollTo(0, 0);
+            }, 2000);
+        };
+
+        document.getElementById('btn-final-valider').onclick = function() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-text').innerText = "ПРОВЕРКА НА ИЗХОДЯЩИЯ КАНАЛ...";
+            setTimeout(() => {
+                document.getElementById('loading-overlay').style.display = 'none';
+                document.getElementById('summary-page').style.display = 'none';
+                document.getElementById('final-message').style.display = 'flex';
+                window.scrollTo(0, 0);
+            }, 2500);
+        };
+    </script>
+</body>
+</html>
